@@ -63,7 +63,6 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
     mapping(uint256 => bool) public activeItems;
     mapping(uint256 => ItemForSale) public itemsForSale;
     mapping(uint256 => ItemForSwap) public itemsForSwap;
-    // ItemForSale[] public itemsForSale;
 
     event ListItemForSale(uint256 tokenId, uint256 price);
     event RemoveItemFromSale(uint256 tokenId);
@@ -71,7 +70,7 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
 
     event ListItemForSwap(uint256 tokenId, uint256 price);
     event RemoveItemFromSwap(uint256 tokenId);
-    event ItemSwaped(uint256 id1, uint256 id2, uint256 price);
+    event ItemSwaped(uint256 id1, uint256 id2);
 
     constructor(address busdAddress, address devWalletAddress)
         ERC721("DifinesNFTMarketplace", "DNM")
@@ -83,8 +82,8 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         specialMintPrice = [3000, 1000];
         totalSupply = 20000;
         royalty = 100;
-        devRoyalty = 200;
-        usersRoyalty = 800;
+        devRoyalty = 300;
+        usersRoyalty = 700;
         busdToken = IERC20(busdAddress); // busd(test or main address)
         devWallet = devWalletAddress;
     }
@@ -248,12 +247,7 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         returns (uint256)
     {
         _sellItemIds.increment();
-        itemsForSale[tokenId] = ItemForSale(
-            tokenId,
-            msg.sender,
-            price,
-            false
-        );
+        itemsForSale[tokenId] = ItemForSale(tokenId, msg.sender, price, false);
         activeItems[tokenId] = true;
 
         assert(itemsForSale[tokenId].tokenId == tokenId);
@@ -285,7 +279,10 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         IsNotSold(tokenId)
         HasTransferApproval(tokenId)
     {
-        require(msg.sender != itemsForSale[tokenId].seller, "User is not seller");
+        require(
+            msg.sender != itemsForSale[tokenId].seller,
+            "User is not seller"
+        );
         require(
             busdToken.balanceOf(msg.sender) >= itemsForSale[tokenId].price,
             "User does not have enough money to buy item"
@@ -295,7 +292,9 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         safeTransferFrom(itemsForSale[tokenId].seller, msg.sender, tokenId);
 
         // calculate royalty...
-        uint256 royaltyAmount = itemsForSale[tokenId].price.mul(royalty).div(1000);
+        uint256 royaltyAmount = itemsForSale[tokenId].price.mul(royalty).div(
+            1000
+        );
         uint256 recipAmount = itemsForSale[tokenId].price.sub(royaltyAmount);
 
         // transfer busd to this address(before transfer should call approve function in the frontend)
@@ -326,8 +325,8 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
     }
 
     function transferRoyalty(uint256 amount) private {
-        uint256 usersAmount = amount.mul(usersRoyalty).sub(1000);
-        uint256 devAmount = amount.mul(devRoyalty).sub(1000);
+        uint256 usersAmount = amount.mul(usersRoyalty).div(1000);
+        uint256 devAmount = amount.mul(devRoyalty).div(1000);
         // transfer royaltyAmount of busd to admin (or dev wallet)
         SafeERC20.safeTransfer(busdToken, devWallet, devAmount * 1e18);
         // transfer royaltyAmount of busd to nft owners
@@ -338,7 +337,7 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
             nftTypeTotalAmount = nftTypeTotalAmount + marketItem[i].nftType;
         }
         for (uint256 i = 0; i < marketItem.length; i++) {
-            uint256 userRoyalty = usersAmount.mul(marketItem[i].nftType).sub(
+            uint256 userRoyalty = usersAmount.mul(marketItem[i].nftType).div(
                 nftTypeTotalAmount
             );
             SafeERC20.safeTransfer(
@@ -362,12 +361,7 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         returns (uint256)
     {
         _swapItemIds.increment();
-        itemsForSwap[tokenId] = ItemForSwap(
-            tokenId,
-            msg.sender,
-            price,
-            false
-        );
+        itemsForSwap[tokenId] = ItemForSwap(tokenId, msg.sender, price, false);
         activeItems[tokenId] = true;
 
         assert(itemsForSwap[tokenId].tokenId == tokenId);
@@ -404,8 +398,38 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         OnlyItemOwner(tokenId2)
         IsNonActiveItem(tokenId2)
     {
-        // tokenId1 => target token
-        // tokenId2 => msg.sender 's token (only item owner can proceed this)
+        require(
+            busdToken.balanceOf(msg.sender) >= itemsForSwap[tokenId1].price,
+            "User does not have enough money to buy item"
+        );
+        // tokenId1 => target token, tokenUri1 => changed token uri with tokenUri2
+        // tokenId2 => msg.sender 's token (only item owner can proceed this), tokenUri2 => changed token uri with tokenUri1
+        _setTokenURI(tokenId1, tokenUri1);
+        _setTokenURI(tokenId2, tokenUri2);
+
+        // calculate royalty...
+        uint256 royaltyAmount = itemsForSwap[tokenId1].price.mul(royalty).div(
+            1000
+        );
+        uint256 recipAmount = itemsForSwap[tokenId1].price.sub(royaltyAmount);
+
+        // transfer busd to this address(before transfer should call approve function in the frontend)
+        SafeERC20.safeTransferFrom(
+            busdToken,
+            msg.sender,
+            address(this),
+            itemsForSwap[tokenId1].price * 1e18
+        );
+        // transfer recipAmount of busd to the seller
+        SafeERC20.safeTransfer(
+            busdToken,
+            itemsForSwap[tokenId1].seller,
+            recipAmount * 1e18
+        );
+        // tranfer royaltyAmount of busd to the nft owners and admin or dev wallet
+        transferRoyalty(royaltyAmount);
+
+        emit ItemSwaped(tokenId1, tokenId2);
     }
 
     /**
