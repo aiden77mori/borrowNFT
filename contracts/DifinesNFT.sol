@@ -19,8 +19,8 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
     using SafeMath for uint256;
 
     Counters.Counter private _tokenIds;
-    Counters.Counter private _sellItemAmounts;
-    Counters.Counter private _swapItemAmounts;
+    Counters.Counter private _sellItemIds;
+    Counters.Counter private _swapItemIds;
 
     address _operator;
     string _contractName;
@@ -40,12 +40,12 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
 
     struct MarketItem {
         uint256 tokenId;
+        address creator;
         address owner;
         uint256 nftType;
     }
 
     struct ItemForSale {
-        uint256 id;
         uint256 tokenId;
         address seller;
         uint256 price;
@@ -53,11 +53,10 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
     }
 
     struct ItemForSwap {
-        uint256 id;
         uint256 tokenId;
         address seller;
         uint256 price;
-        bool isSold;
+        bool isSwapped;
     }
 
     mapping(uint256 => MarketItem) public idToMarketItem;
@@ -66,9 +65,13 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
     mapping(uint256 => ItemForSwap) public itemsForSwap;
     // ItemForSale[] public itemsForSale;
 
-    event ListItemForSale(uint256 id, uint256 tokenId, uint256 price);
-    event RemoveItemFromSale(uint256 id, uint256 tokenId);
-    event ItemSold(uint256 id, address recipient, uint256 price);
+    event ListItemForSale(uint256 tokenId, uint256 price);
+    event RemoveItemFromSale(uint256 tokenId);
+    event ItemSold(uint256 tokenId, address recipient, uint256 price);
+
+    event ListItemForSwap(uint256 tokenId, uint256 price);
+    event RemoveItemFromSwap(uint256 tokenId);
+    event ItemSwaped(uint256 id1, uint256 id2, uint256 price);
 
     constructor(address busdAddress, address devWalletAddress)
         ERC721("DifinesNFTMarketplace", "DNM")
@@ -116,7 +119,7 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         uint256 newItemId = _tokenIds.current();
         _mint(_to, newItemId);
         _setTokenURI(newItemId, _tokenUri);
-        idToMarketItem[newItemId] = MarketItem(newItemId, _to, nftType);
+        idToMarketItem[newItemId] = MarketItem(newItemId, _to, _to, nftType);
 
         SafeERC20.safeTransferFrom(
             busdToken,
@@ -163,8 +166,10 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         for (uint256 i = 0; i < itemCount; i++) {
             uint256 currentId = i + 1;
             MarketItem storage currentItem = idToMarketItem[currentId];
-            items[currentIndex] = currentItem;
-            currentIndex += 1;
+            if (currentItem.tokenId == currentId) {
+                items[currentIndex] = currentItem;
+                currentIndex += 1;
+            }
         }
 
         return items;
@@ -223,11 +228,11 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
     }
 
     function getSellItemAmounts() public view returns (uint256) {
-      return _sellItemAmounts.current();
+        return _sellItemIds.current();
     }
 
     function getSwapItemAmounts() public view returns (uint256) {
-      return _swapItemAmounts.current();
+        return _swapItemIds.current();
     }
 
     /**
@@ -239,15 +244,11 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
     function listItemForSale(uint256 tokenId, uint256 price)
         public
         OnlyItemOwner(tokenId)
+        IsNonActiveItem(tokenId)
         returns (uint256)
     {
-        require(!activeItems[tokenId], "Item is already up for sale");
-
-        _sellItemAmounts.increment();
-        uint256 lastItemId = itemsForSale[_sellItemAmounts.current()].id;
-        uint256 newItemId = lastItemId + 1;
-        itemsForSale[newItemId] = ItemForSale(
-            newItemId,
+        _sellItemIds.increment();
+        itemsForSale[tokenId] = ItemForSale(
             tokenId,
             msg.sender,
             price,
@@ -255,10 +256,10 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         );
         activeItems[tokenId] = true;
 
-        assert(itemsForSale[newItemId].id == newItemId);
-        emit ListItemForSale(newItemId, tokenId, price);
+        assert(itemsForSale[tokenId].tokenId == tokenId);
+        emit ListItemForSale(tokenId, price);
 
-        return newItemId;
+        return tokenId;
     }
 
     function removeItemFromSale(uint256 tokenId)
@@ -268,69 +269,60 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
     {
         require(activeItems[tokenId], "Item is not up for sale");
 
-        uint256 itemId = 0;
-        for (uint256 i = 0; i < _sellItemAmounts.current(); i++) {
-            if (itemsForSale[i].tokenId == tokenId) {
-                itemId = i;
-            }
-        }
-
-        delete itemsForSale[itemId];
+        delete itemsForSale[tokenId];
         activeItems[tokenId] = false;
 
-        _sellItemAmounts.decrement();
+        _sellItemIds.decrement();
 
-        emit RemoveItemFromSale(itemId, tokenId);
+        emit RemoveItemFromSale(tokenId);
 
-        return itemId;
+        return tokenId;
     }
 
-    function buyItem(uint256 id)
+    function buyItem(uint256 tokenId)
         public
-        ItemForSaleExists(id)
-        IsNotSold(id)
-        HasTransferApproval(itemsForSale[id].tokenId)
+        ItemForSaleExists(tokenId)
+        IsNotSold(tokenId)
+        HasTransferApproval(tokenId)
     {
-        require(msg.sender != itemsForSale[id].seller, "User is not seller");
+        require(msg.sender != itemsForSale[tokenId].seller, "User is not seller");
         require(
-            busdToken.balanceOf(msg.sender) >= itemsForSale[id].price,
+            busdToken.balanceOf(msg.sender) >= itemsForSale[tokenId].price,
             "User does not have enough money to buy item"
         );
 
-        uint256 tokenId = itemsForSale[id].tokenId;
-
         // transfer nft to buyer
-        safeTransferFrom(itemsForSale[id].seller, msg.sender, tokenId);
+        safeTransferFrom(itemsForSale[tokenId].seller, msg.sender, tokenId);
 
         // calculate royalty...
-        uint256 royaltyAmount = itemsForSale[id].price.mul(royalty).div(1000);
-        uint256 recipAmount = itemsForSale[id].price.sub(royaltyAmount);
+        uint256 royaltyAmount = itemsForSale[tokenId].price.mul(royalty).div(1000);
+        uint256 recipAmount = itemsForSale[tokenId].price.sub(royaltyAmount);
 
         // transfer busd to this address(before transfer should call approve function in the frontend)
         SafeERC20.safeTransferFrom(
             busdToken,
             msg.sender,
             address(this),
-            itemsForSale[id].price * 1e18
+            itemsForSale[tokenId].price * 1e18
         );
         // transfer recipAmount of busd to the seller
         SafeERC20.safeTransfer(
             busdToken,
-            itemsForSale[id].seller,
+            itemsForSale[tokenId].seller,
             recipAmount * 1e18
         );
         // tranfer royaltyAmount of busd to the nft owners and admin or dev wallet
         transferRoyalty(royaltyAmount);
 
         // itemsForSale[id].isSold = true;
-        delete itemsForSale[id];
+        delete itemsForSale[tokenId];
         activeItems[tokenId] = false;
-        _sellItemAmounts.decrement();
+        _sellItemIds.decrement();
 
         // update marketItem
         idToMarketItem[tokenId].owner = msg.sender;
 
-        emit ItemSold(id, msg.sender, itemsForSale[id].price);
+        emit ItemSold(tokenId, msg.sender, itemsForSale[tokenId].price);
     }
 
     function transferRoyalty(uint256 amount) private {
@@ -363,15 +355,50 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
      ***************************************
      */
 
-    function listItemForSwap(uint256 tokenId, uint256 price) public OnlyItemOwner(tokenId) returns (uint256) {
+    function listItemForSwap(uint256 tokenId, uint256 price)
+        public
+        OnlyItemOwner(tokenId)
+        IsNonActiveItem(tokenId)
+        returns (uint256)
+    {
+        _swapItemIds.increment();
+        itemsForSwap[tokenId] = ItemForSwap(
+            tokenId,
+            msg.sender,
+            price,
+            false
+        );
+        activeItems[tokenId] = true;
 
+        assert(itemsForSwap[tokenId].tokenId == tokenId);
+        emit ListItemForSwap(tokenId, price);
+
+        return tokenId;
     }
 
-    function removeItemFromSwap(uint256 tokenId) public OnlyItemOwner(tokenId) returns (uint256) {
+    function removeItemFromSwap(uint256 tokenId)
+        public
+        OnlyItemOwner(tokenId)
+        returns (uint256)
+    {
+        require(activeItems[tokenId], "Item is not up for swap");
 
+        delete itemsForSwap[tokenId];
+        activeItems[tokenId] = false;
+
+        _swapItemIds.decrement();
+
+        emit RemoveItemFromSwap(tokenId);
+
+        return tokenId;
     }
 
-    function swapItem(uint256 tokenId1, string memory tokenUri1, uint256 tokenId2, string memory tokenUri2)
+    function swapItem(
+        uint256 tokenId1,
+        string memory tokenUri1,
+        uint256 tokenId2,
+        string memory tokenUri2
+    )
         public
         ItemForSwapExists(tokenId1)
         OnlyItemOwner(tokenId2)
@@ -392,9 +419,9 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         _;
     }
 
-    modifier ItemForSaleExists(uint256 id) {
+    modifier ItemForSaleExists(uint256 tokenId) {
         require(
-            itemsForSale[id].id == id,
+            itemsForSale[tokenId].tokenId == tokenId,
             "Could not find item on the sale list"
         );
         _;
@@ -408,8 +435,8 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         _;
     }
 
-    modifier IsNotSold(uint256 id) {
-        require(!itemsForSale[id].isSold, "Item is already sold");
+    modifier IsNotSold(uint256 tokenId) {
+        require(!itemsForSale[tokenId].isSold, "Item is already sold");
         _;
     }
 
@@ -432,12 +459,16 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
      **************************************
      */
 
-    function safeMint(address _to, string memory _tokenUri, uint256 nftType) public onlyOwner {
+    function safeMint(
+        address _to,
+        string memory _tokenUri,
+        uint256 nftType
+    ) public onlyOwner {
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
         _safeMint(_to, newItemId);
         _setTokenURI(newItemId, _tokenUri);
-        idToMarketItem[newItemId] = MarketItem(newItemId, _to, nftType);
+        idToMarketItem[newItemId] = MarketItem(newItemId, _to, _to, nftType);
     }
 
     function setMintPrice(uint256 _price, uint256 index) public onlyOwner {
