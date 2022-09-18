@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
@@ -93,7 +94,6 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         string memory _tokenUri,
         uint256 nftType
     ) public returns (uint256) {
-        // pay busd to admin
         uint256 mPrice = 0;
         if (nftType == 250) {
             mPrice = specialMintPrice[0];
@@ -115,11 +115,19 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         );
 
         _tokenIds.increment();
+
+        require(
+            _tokenIds.current() <= totalSupply,
+            "Can't mint over totalSupply"
+        );
+
         uint256 newItemId = _tokenIds.current();
         _mint(_to, newItemId);
         _setTokenURI(newItemId, _tokenUri);
+        _approve(address(this), newItemId);
         idToMarketItem[newItemId] = MarketItem(newItemId, _to, _to, nftType);
 
+        // pay busd to admin
         SafeERC20.safeTransferFrom(
             busdToken,
             msg.sender,
@@ -277,7 +285,6 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         public
         ItemForSaleExists(tokenId)
         IsNotSold(tokenId)
-        HasTransferApproval(tokenId)
     {
         require(
             msg.sender != itemsForSale[tokenId].seller,
@@ -466,14 +473,6 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
 
     modifier IsNonActiveItem(uint256 tokenId) {
         require(!activeItems[tokenId], "Should not active");
-        _;
-    }
-
-    modifier HasTransferApproval(uint256 tokenId) {
-        require(
-            getApproved(tokenId) == address(this),
-            "Market is not approved"
-        );
         _;
     }
 
