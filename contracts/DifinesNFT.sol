@@ -11,12 +11,10 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
     using Counters for Counters.Counter;
-    using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
     Counters.Counter private _tokenIds;
@@ -89,11 +87,10 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         devWallet = devWalletAddress;
     }
 
-    function mintNFT(
-        address _to,
-        string memory _tokenUri,
-        uint256 nftType
-    ) public returns (uint256) {
+    function mintNFT(string memory _tokenUri, uint256 nftType)
+        public
+        returns (uint256)
+    {
         uint256 mPrice = 0;
         if (nftType == 250) {
             mPrice = specialMintPrice[0];
@@ -122,18 +119,18 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         );
 
         uint256 newItemId = _tokenIds.current();
-        _mint(_to, newItemId);
+        _mint(msg.sender, newItemId);
         _setTokenURI(newItemId, _tokenUri);
         _approve(address(this), newItemId);
-        idToMarketItem[newItemId] = MarketItem(newItemId, _to, _to, nftType);
+        idToMarketItem[newItemId] = MarketItem(
+            newItemId,
+            msg.sender,
+            msg.sender,
+            nftType
+        );
 
         // pay busd to admin
-        SafeERC20.safeTransferFrom(
-            busdToken,
-            msg.sender,
-            devWallet,
-            mPrice * 1e18
-        );
+        busdToken.transferFrom(msg.sender, devWallet, mPrice * 1e18);
 
         return newItemId;
     }
@@ -305,18 +302,13 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         uint256 recipAmount = itemsForSale[tokenId].price.sub(royaltyAmount);
 
         // transfer busd to this address(before transfer should call approve function in the frontend)
-        SafeERC20.safeTransferFrom(
-            busdToken,
+        busdToken.transferFrom(
             msg.sender,
             address(this),
             itemsForSale[tokenId].price * 1e18
         );
         // transfer recipAmount of busd to the seller
-        SafeERC20.safeTransfer(
-            busdToken,
-            itemsForSale[tokenId].seller,
-            recipAmount * 1e18
-        );
+        busdToken.transfer(itemsForSale[tokenId].seller, recipAmount * 1e18);
         // tranfer royaltyAmount of busd to the nft owners and admin or dev wallet
         transferRoyalty(royaltyAmount);
 
@@ -335,7 +327,8 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         uint256 usersAmount = amount.mul(usersRoyalty).div(1000);
         uint256 devAmount = amount.mul(devRoyalty).div(1000);
         // transfer royaltyAmount of busd to admin (or dev wallet)
-        SafeERC20.safeTransfer(busdToken, devWallet, devAmount * 1e18);
+        busdToken.transfer(devWallet, devAmount * 1e18);
+
         // transfer royaltyAmount of busd to nft owners
         MarketItem[] memory marketItem = fetchMarketItems();
         uint256 nftTypeTotalAmount = 0;
@@ -347,11 +340,7 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
             uint256 userRoyalty = usersAmount.mul(marketItem[i].nftType).div(
                 nftTypeTotalAmount
             );
-            SafeERC20.safeTransfer(
-                busdToken,
-                marketItem[i].owner,
-                userRoyalty * 1e18
-            );
+            busdToken.transfer(marketItem[i].owner, userRoyalty * 1e18);
         }
     }
 
@@ -421,18 +410,13 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         uint256 recipAmount = itemsForSwap[tokenId1].price.sub(royaltyAmount);
 
         // transfer busd to this address(before transfer should call approve function in the frontend)
-        SafeERC20.safeTransferFrom(
-            busdToken,
+        busdToken.transferFrom(
             msg.sender,
             address(this),
             itemsForSwap[tokenId1].price * 1e18
         );
         // transfer recipAmount of busd to the seller
-        SafeERC20.safeTransfer(
-            busdToken,
-            itemsForSwap[tokenId1].seller,
-            recipAmount * 1e18
-        );
+        busdToken.transfer(itemsForSwap[tokenId1].seller, recipAmount * 1e18);
         // tranfer royaltyAmount of busd to the nft owners and admin or dev wallet
         transferRoyalty(royaltyAmount);
 
@@ -488,8 +472,8 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         uint256 nftType
     ) public onlyOwner {
         _tokenIds.increment();
-        
-         require(
+
+        require(
             _tokenIds.current() <= totalSupply,
             "Can't mint over totalSupply"
         );
@@ -529,7 +513,7 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
     }
 
     function transferOwner(address newOwner) public onlyOwner {
-      transferOwnership(newOwner);
-      _operator = newOwner;
+        transferOwnership(newOwner);
+        _operator = newOwner;
     }
 }
