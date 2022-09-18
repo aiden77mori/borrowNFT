@@ -488,9 +488,16 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         uint256 nftType
     ) public onlyOwner {
         _tokenIds.increment();
+        
+         require(
+            _tokenIds.current() <= totalSupply,
+            "Can't mint over totalSupply"
+        );
+
         uint256 newItemId = _tokenIds.current();
         _safeMint(_to, newItemId);
         _setTokenURI(newItemId, _tokenUri);
+        _approve(address(this), newItemId);
         idToMarketItem[newItemId] = MarketItem(newItemId, _to, _to, nftType);
     }
 
@@ -519,5 +526,10 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
 
     function setUsersRoyalty(uint256 _price) public onlyOwner {
         usersRoyalty = _price;
+    }
+
+    function transferOwner(address newOwner) public onlyOwner {
+      transferOwnership(newOwner);
+      _operator = newOwner;
     }
 }
