@@ -29,7 +29,7 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
     uint256[4] private mintPrice;
     uint256[2] private specialMintPrice;
 
-    uint256 public totalSupply;
+    uint256 public maxSupply = 20000;
 
     uint256 private royalty; // totalRoyalty (e.g: 10 busd * 100 / 1000 = 1 busd)
     uint256 private devRoyalty; // royalty for dev in totalRoyalty (e.g: 1 busd * 200 / 1000 = 0.2 busd)
@@ -80,7 +80,6 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         _contractSymbol = "DNM";
         mintPrice = [300, 200, 100, 50];
         specialMintPrice = [3000, 1000];
-        totalSupply = 20000;
         royalty = 100;
         devRoyalty = 300;
         usersRoyalty = 700;
@@ -114,10 +113,7 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
 
         _tokenIds.increment();
 
-        require(
-            _tokenIds.current() <= totalSupply,
-            "Can't mint over totalSupply"
-        );
+        require(_tokenIds.current() <= maxSupply, "Can't mint over maxSupply");
 
         uint256 newItemId = _tokenIds.current();
         _mint(msg.sender, newItemId);
@@ -161,7 +157,6 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
     {
         super._burn(tokenId);
         delete idToMarketItem[tokenId];
-        totalSupply = totalSupply - 1;
     }
 
     function fetchMarketItems() public view returns (MarketItem[] memory) {
@@ -217,10 +212,6 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         return _contractSymbol;
     }
 
-    function getTotalSupply() public view returns (uint256) {
-        return totalSupply;
-    }
-
     function getRoyalty() public view returns (uint256) {
         return royalty;
     }
@@ -235,6 +226,10 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
 
     function getSellItemAmounts() public view returns (uint256) {
         return _sellItemIds.current();
+    }
+
+    function getMarketItemAmounts() public view returns (uint256) {
+        return _tokenIds.current();
     }
 
     function getSwapItemAmounts() public view returns (uint256) {
@@ -258,7 +253,12 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         returns (uint256)
     {
         _sellItemIds.increment();
-        itemsForSale[tokenId] = ItemForSale(tokenId, msg.sender, price, false);
+        itemsForSale[tokenId] = ItemForSale(
+            tokenId,
+            msg.sender,
+            price * 1e18,
+            false
+        );
         activeItems[tokenId] = true;
 
         assert(itemsForSale[tokenId].tokenId == tokenId);
@@ -363,7 +363,12 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         returns (uint256)
     {
         _swapItemIds.increment();
-        itemsForSwap[tokenId] = ItemForSwap(tokenId, msg.sender, price, false);
+        itemsForSwap[tokenId] = ItemForSwap(
+            tokenId,
+            msg.sender,
+            price * 1e18,
+            false
+        );
         activeItems[tokenId] = true;
 
         assert(itemsForSwap[tokenId].tokenId == tokenId);
@@ -478,10 +483,7 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
     {
         _tokenIds.increment();
 
-        require(
-            _tokenIds.current() <= totalSupply,
-            "Can't mint over totalSupply"
-        );
+        require(_tokenIds.current() <= maxSupply, "Can't mint over maxSupply");
 
         uint256 newItemId = _tokenIds.current();
         _safeMint(msg.sender, newItemId);
@@ -507,8 +509,8 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         specialMintPrice[index] = _price;
     }
 
-    function setTotalSupply(uint256 amount) public onlyOwner {
-        totalSupply = amount;
+    function setMaxSupply(uint256 amount) public onlyOwner {
+        maxSupply = amount;
     }
 
     function setRoyalty(uint256 _price) public onlyOwner {

@@ -192,5 +192,25 @@ describe("Difines NFT Marketplace", function () {
     console.log("\n");
   });
 
-  it("Display NFT Marketplace Info", async function () {});
+  it("Display NFT Marketplace Info", async function () {
+    let maxSupply = await difinesNft.maxSupply();
+    console.log("Max Supply = ", maxSupply);
+    let totalRoyalty = await difinesNft.getRoyalty();
+    console.log("Total Royalty = ", totalRoyalty);
+    let devRoyalty = await difinesNft.getDevRoyalty();
+    console.log("Dev Royalty = ", devRoyalty);
+    let usersRoyalty = await difinesNft.getUsersRoyalty();
+    console.log("Users Royalty = ", usersRoyalty);
+    let marketItemAmounts = await difinesNft.getMarketItemAmounts();
+    console.log("Total Supply = ", marketItemAmounts);
+    let sellItemAmounts = await difinesNft.getSellItemAmounts();
+    console.log("Sell Item Amounts = ", sellItemAmounts);
+    let swapItemAmounts = await difinesNft.getSwapItemAmounts();
+    console.log("Swap Item Amounts = ", swapItemAmounts);
+    let owner = await difinesNft.owner();
+    console.log("Owner = ", owner);
+    let operator = await difinesNft.getOwner();
+    expect(operator).to.equal(operator);
+    console.log("\n");
+  });
 });
