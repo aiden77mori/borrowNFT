@@ -42,6 +42,7 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         address creator;
         address owner;
         uint256 nftType;
+        string tokenUri;
     }
 
     struct ItemForSale {
@@ -87,7 +88,7 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         devWallet = devWalletAddress;
     }
 
-    function mintNFT(string memory _tokenUri, uint256 nftType)
+    function mintNFT(string memory tokenUri, uint256 nftType)
         public
         returns (uint256)
     {
@@ -120,13 +121,14 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
 
         uint256 newItemId = _tokenIds.current();
         _mint(msg.sender, newItemId);
-        _setTokenURI(newItemId, _tokenUri);
+        _setTokenURI(newItemId, tokenUri);
         _approve(address(this), newItemId);
         idToMarketItem[newItemId] = MarketItem(
             newItemId,
             msg.sender,
             msg.sender,
-            nftType
+            nftType,
+            tokenUri
         );
 
         // pay busd to admin
@@ -237,6 +239,10 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
 
     function getSwapItemAmounts() public view returns (uint256) {
         return _swapItemIds.current();
+    }
+
+    function getDevWalletAddress() public view returns (address) {
+        return devWallet;
     }
 
     /**
@@ -466,11 +472,10 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
      **************************************
      */
 
-    function safeMint(
-        address _to,
-        string memory _tokenUri,
-        uint256 nftType
-    ) public onlyOwner {
+    function safeMint(string memory tokenUri, uint256 nftType)
+        public
+        onlyOwner
+    {
         _tokenIds.increment();
 
         require(
@@ -479,10 +484,16 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         );
 
         uint256 newItemId = _tokenIds.current();
-        _safeMint(_to, newItemId);
-        _setTokenURI(newItemId, _tokenUri);
+        _safeMint(msg.sender, newItemId);
+        _setTokenURI(newItemId, tokenUri);
         _approve(address(this), newItemId);
-        idToMarketItem[newItemId] = MarketItem(newItemId, _to, _to, nftType);
+        idToMarketItem[newItemId] = MarketItem(
+            newItemId,
+            msg.sender,
+            msg.sender,
+            nftType,
+            tokenUri
+        );
     }
 
     function setMintPrice(uint256 _price, uint256 index) public onlyOwner {
@@ -515,5 +526,9 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
     function transferOwner(address newOwner) public onlyOwner {
         transferOwnership(newOwner);
         _operator = newOwner;
+    }
+
+    function setDevWalletAddress(address newWallet) public onlyOwner {
+        devWallet = newWallet;
     }
 }
