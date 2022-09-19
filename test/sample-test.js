@@ -78,7 +78,6 @@ describe("Difines NFT Marketplace", function () {
       .mintNFT("https://difines.io/user/tokenUri", 250);
     await txUser.wait();
     console.log("User mint hash result = ", txUser.hash);
-    console.log("\n");
 
     // anotherUser's nft mint
     // before mint, should call erc20 approve function
@@ -93,7 +92,6 @@ describe("Difines NFT Marketplace", function () {
       .mintNFT("https://difines.io/anotherUser/tokenUri", 200);
     await txAnotherUser.wait();
     console.log("AnotherUser mint hash result = ", txAnotherUser.hash);
-    console.log("\n");
 
     // owner's nft mint
     let txOwner = await difinesNft.safeMint(

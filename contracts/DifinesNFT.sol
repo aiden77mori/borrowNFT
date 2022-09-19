@@ -65,6 +65,8 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
     mapping(uint256 => ItemForSale) public itemsForSale;
     mapping(uint256 => ItemForSwap) public itemsForSwap;
 
+    event MintNFT(uint256 tokenId, uint256 price);
+
     event ListItemForSale(uint256 tokenId, uint256 price);
     event RemoveItemFromSale(uint256 tokenId);
     event ItemSold(uint256 tokenId, address recipient, uint256 price);
@@ -129,6 +131,8 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
 
         // pay busd to admin
         busdToken.transferFrom(msg.sender, devWallet, mPrice * 1e18);
+
+        emit MintNFT(newItemId, mPrice * 1e18);
 
         return newItemId;
     }
@@ -519,6 +523,21 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         public
         onlyOwner
     {
+        uint256 mPrice = 0;
+        if (nftType == 250) {
+            mPrice = specialMintPrice[0];
+        } else if (nftType == 200) {
+            mPrice = specialMintPrice[1];
+        } else if (nftType == 70) {
+            mPrice = mintPrice[0];
+        } else if (nftType == 50) {
+            mPrice = mintPrice[1];
+        } else if (nftType == 20) {
+            mPrice = mintPrice[2];
+        } else {
+            mPrice = mintPrice[3];
+        }
+        
         _tokenIds.increment();
 
         require(_tokenIds.current() <= maxSupply, "Can't mint over maxSupply");
@@ -534,6 +553,8 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
             nftType,
             tokenUri
         );
+
+        emit MintNFT(newItemId, mPrice * 1e18);
     }
 
     function setMintPrice(uint256 _price, uint256 index) public onlyOwner {
