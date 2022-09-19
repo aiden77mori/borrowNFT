@@ -81,8 +81,8 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         mintPrice = [300, 200, 100, 50];
         specialMintPrice = [3000, 1000];
         royalty = 100;
-        devRoyalty = 300;
-        usersRoyalty = 700;
+        devRoyalty = 100;
+        usersRoyalty = 900;
         busdToken = IERC20(busdAddress); // busd(test or main address)
         devWallet = devWalletAddress;
     }
