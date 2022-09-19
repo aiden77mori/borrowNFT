@@ -1,4 +1,3 @@
-//Contract based on [https://docs.openzeppelin.com/contracts/3.x/erc721](https://docs.openzeppelin.com/contracts/3.x/erc721)
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.4;
@@ -12,6 +11,8 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+
+import "hardhat/console.sol";
 
 contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
     using Counters for Counters.Counter;
@@ -118,7 +119,6 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         uint256 newItemId = _tokenIds.current();
         _mint(msg.sender, newItemId);
         _setTokenURI(newItemId, tokenUri);
-        _approve(address(this), newItemId);
         idToMarketItem[newItemId] = MarketItem(
             newItemId,
             msg.sender,
@@ -167,13 +167,49 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         for (uint256 i = 0; i < itemCount; i++) {
             uint256 currentId = i + 1;
             MarketItem storage currentItem = idToMarketItem[currentId];
-            if (currentItem.tokenId == currentId) {
+            if (currentItem.creator != address(0)) {
                 items[currentIndex] = currentItem;
                 currentIndex += 1;
             }
         }
 
         return items;
+    }
+
+    function fetchSellItems() public view returns (ItemForSale[] memory) {
+        uint256 sellItemCount = _sellItemIds.current();
+        uint256 currentIndex = 0;
+        MarketItem[] memory marketItems = fetchMarketItems();
+
+        ItemForSale[] memory saleItems = new ItemForSale[](sellItemCount);
+        for (uint256 i = 0; i < marketItems.length; i++) {
+            uint256 curTokenId = marketItems[i].tokenId;
+            ItemForSale storage currentItem = itemsForSale[curTokenId];
+            if (currentItem.seller != address(0)) {
+                saleItems[currentIndex] = currentItem;
+                currentIndex += 1;
+            }
+        }
+
+        return saleItems;
+    }
+
+    function fetchSwapItems() public view returns (ItemForSwap[] memory) {
+        uint256 swapItemCount = _swapItemIds.current();
+        uint256 currentIndex = 0;
+        MarketItem[] memory marketItems = fetchMarketItems();
+
+        ItemForSwap[] memory swapItems = new ItemForSwap[](swapItemCount);
+        for (uint256 i = 0; i < marketItems.length; i++) {
+            uint256 curTokenId = marketItems[i].tokenId;
+            ItemForSwap storage currentItem = itemsForSwap[curTokenId];
+            if (currentItem.seller != address(0)) {
+                swapItems[currentIndex] = currentItem;
+                currentIndex += 1;
+            }
+        }
+
+        return swapItems;
     }
 
     function fetchMyNFT() public view returns (MarketItem[] memory) {
@@ -262,7 +298,7 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         activeItems[tokenId] = true;
 
         assert(itemsForSale[tokenId].tokenId == tokenId);
-        emit ListItemForSale(tokenId, price);
+        emit ListItemForSale(tokenId, price * 1e18);
 
         return tokenId;
     }
@@ -298,8 +334,13 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
             "User does not have enough money to buy item"
         );
 
+        // should call erc721 approve function before transferFrom nft
+        _approve(msg.sender, tokenId);
         // transfer nft to buyer
         safeTransferFrom(itemsForSale[tokenId].seller, msg.sender, tokenId);
+
+        // update marketItem
+        idToMarketItem[tokenId].owner = msg.sender;
 
         // calculate royalty...
         uint256 royaltyAmount = itemsForSale[tokenId].price.mul(royalty).div(
@@ -311,20 +352,17 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         busdToken.transferFrom(
             msg.sender,
             address(this),
-            itemsForSale[tokenId].price * 1e18
+            itemsForSale[tokenId].price
         );
         // transfer recipAmount of busd to the seller
-        busdToken.transfer(itemsForSale[tokenId].seller, recipAmount * 1e18);
+        busdToken.transfer(itemsForSale[tokenId].seller, recipAmount);
         // tranfer royaltyAmount of busd to the nft owners and admin or dev wallet
         transferRoyalty(royaltyAmount);
 
         // itemsForSale[id].isSold = true;
+        _sellItemIds.decrement();
         delete itemsForSale[tokenId];
         activeItems[tokenId] = false;
-        _sellItemIds.decrement();
-
-        // update marketItem
-        idToMarketItem[tokenId].owner = msg.sender;
 
         emit ItemSold(tokenId, msg.sender, itemsForSale[tokenId].price);
     }
@@ -333,7 +371,7 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         uint256 usersAmount = amount.mul(usersRoyalty).div(1000);
         uint256 devAmount = amount.mul(devRoyalty).div(1000);
         // transfer royaltyAmount of busd to admin (or dev wallet)
-        busdToken.transfer(devWallet, devAmount * 1e18);
+        busdToken.transfer(devWallet, devAmount);
 
         // transfer royaltyAmount of busd to nft owners
         MarketItem[] memory marketItem = fetchMarketItems();
@@ -346,7 +384,7 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
             uint256 userRoyalty = usersAmount.mul(marketItem[i].nftType).div(
                 nftTypeTotalAmount
             );
-            busdToken.transfer(marketItem[i].owner, userRoyalty * 1e18);
+            busdToken.transfer(marketItem[i].owner, userRoyalty);
         }
     }
 
@@ -372,7 +410,7 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         activeItems[tokenId] = true;
 
         assert(itemsForSwap[tokenId].tokenId == tokenId);
-        emit ListItemForSwap(tokenId, price);
+        emit ListItemForSwap(tokenId, price * 1e18);
 
         return tokenId;
     }
@@ -424,10 +462,10 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         busdToken.transferFrom(
             msg.sender,
             address(this),
-            itemsForSwap[tokenId1].price * 1e18
+            itemsForSwap[tokenId1].price
         );
         // transfer recipAmount of busd to the seller
-        busdToken.transfer(itemsForSwap[tokenId1].seller, recipAmount * 1e18);
+        busdToken.transfer(itemsForSwap[tokenId1].seller, recipAmount);
         // tranfer royaltyAmount of busd to the nft owners and admin or dev wallet
         transferRoyalty(royaltyAmount);
 

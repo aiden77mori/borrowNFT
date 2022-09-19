@@ -213,4 +213,128 @@ describe("Difines NFT Marketplace", function () {
     expect(operator).to.equal(operator);
     console.log("\n");
   });
+
+  it("Buy(Sell) Functions Testing", async function () {
+    // list item for sale
+    console.log("------------------------------");
+    console.log("----- List Item For Sale -----");
+    console.log("------------------------------");
+    let tx = await difinesNft.connect(user).listItemForSale(1, 3500);
+    await tx.wait();
+    console.log("Hash result for listing token 1 ", tx.hash);
+
+    tx = await difinesNft.connect(anotherUser).listItemForSale(2, 1500);
+    await tx.wait();
+    console.log("Hash result for listing token 2 ", tx.hash);
+
+    tx = await difinesNft.listItemForSale(3, 250);
+    await tx.wait();
+    console.log("Hash result for listing token 3 ", tx.hash);
+    console.log("\n");
+
+    // fetch sell items
+    console.log("-------------------------------");
+    console.log("----- Fetch Item For Sale -----");
+    console.log("-------------------------------");
+    let saleItems = await difinesNft.fetchSellItems();
+    console.log(saleItems);
+    console.log("\n");
+
+    // remove listed item
+    tx = await difinesNft.connect(anotherUser).removeItemFromSale(2);
+    await tx.wait();
+    console.log("Hash result for removing listed token 2 ", tx.hash);
+    console.log("\n");
+
+    // fetch sell items
+    console.log("-------------------------------");
+    console.log("----- Fetch Item For Sale -----");
+    console.log("-------------------------------");
+    saleItems = await difinesNft.fetchSellItems();
+    console.log(saleItems);
+    console.log("\n");
+
+    // fetch swap items
+    console.log("-------------------------------");
+    console.log("----- Fetch Item For Swap -----");
+    console.log("-------------------------------");
+    let swapItems = await difinesNft.fetchSwapItems();
+    console.log(swapItems);
+    console.log("\n");
+
+    // buy nft
+    console.log("-------------------");
+    console.log("----- Buy NFT -----");
+    console.log("-------------------");
+    // before buy nft, call erc20 approve function
+    await busdToken
+      .connect(user)
+      .approve(
+        difinesNft.address,
+        ethers.utils.parseUnits(Number(250).toString(), 18)
+      );
+    let txBuy = await difinesNft.connect(user).buyItem(3);
+    await txBuy.wait();
+    console.log("Buy NFT hash result ", txBuy.hash);
+    console.log("\n");
+
+    // fetch sell items
+    console.log("-------------------------------");
+    console.log("----- Fetch Item For Sale -----");
+    console.log("-------------------------------");
+    saleItems = await difinesNft.fetchSellItems();
+    console.log(saleItems);
+    console.log("\n");
+
+    let userNFTList = await difinesNft.connect(user).fetchMyNFT();
+    console.log("---------------------------");
+    console.log("------ User NFT Items -----");
+    console.log("---------------------------");
+    console.log(userNFTList);
+    console.log("\n");
+
+    let ownerNFTList = await difinesNft.fetchMyNFT();
+    console.log("----------------------------");
+    console.log("------ Owner NFT Items -----");
+    console.log("----------------------------");
+    console.log(ownerNFTList);
+    console.log("\n");
+
+    console.log("----------------------------");
+    console.log("------ User`s balance ------");
+    console.log("----------------------------");
+    console.log(
+      ethers.utils.formatEther(await busdToken.balanceOf(user.address))
+    );
+    console.log("\n");
+
+    console.log("-----------------------------------");
+    console.log("------ AnotherUser`s balance ------");
+    console.log("-----------------------------------");
+    console.log(
+      ethers.utils.formatEther(await busdToken.balanceOf(anotherUser.address))
+    );
+    console.log("\n");
+
+    console.log("-----------------------------");
+    console.log("------ Owner`s balance ------");
+    console.log("-----------------------------");
+    console.log(
+      ethers.utils.formatEther(await busdToken.balanceOf(owner.address))
+    );
+    console.log("\n");
+
+    console.log("---------------------------------");
+    console.log("------ Marketplace balance ------");
+    console.log("---------------------------------");
+    console.log(
+      ethers.utils.formatEther(await busdToken.balanceOf(difinesNft.address))
+    );
+    console.log("\n");
+
+    console.log("---------------------------------");
+    console.log("------ DevWallet`s balance ------");
+    console.log("---------------------------------");
+    console.log(ethers.utils.formatEther(await busdToken.balanceOf(devWallet)));
+  });
 });
