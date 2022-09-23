@@ -75,7 +75,7 @@ describe("Difines NFT Marketplace", function () {
       );
     let txUser = await difinesNft
       .connect(user)
-      .mintNFT("https://difines.io/user/tokenUri", 250);
+      .mintNFT("https://difines.io/user/tokenUri", 10);
     await txUser.wait();
     console.log("User mint hash result = ", txUser.hash);
 
@@ -89,14 +89,14 @@ describe("Difines NFT Marketplace", function () {
       );
     let txAnotherUser = await difinesNft
       .connect(anotherUser)
-      .mintNFT("https://difines.io/anotherUser/tokenUri", 200);
+      .mintNFT("https://difines.io/anotherUser/tokenUri", 7);
     await txAnotherUser.wait();
     console.log("AnotherUser mint hash result = ", txAnotherUser.hash);
 
     // owner's nft mint
     let txOwner = await difinesNft.safeMint(
       "https://difines.io/owner/tokenUri",
-      70
+      7
     );
     await txOwner.wait();
     console.log("Owner mint hash result = ", txOwner.hash);

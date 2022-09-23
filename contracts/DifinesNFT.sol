@@ -94,16 +94,31 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         public
         returns (uint256)
     {
+        /**
+      ************************
+      ****** NFT Types *******
+      ************************
+      special character 10
+      special sword 7
+      special shield 7
+      special jewel 7
+
+      common character 4
+      common character 3
+      common character 2
+      common character 1
+       */
+
         uint256 mPrice = 0;
-        if (nftType == 250) {
+        if (nftType == 10) {
             mPrice = specialMintPrice[0];
-        } else if (nftType == 200) {
+        } else if (nftType == 7) {
             mPrice = specialMintPrice[1];
-        } else if (nftType == 70) {
+        } else if (nftType == 4) {
             mPrice = mintPrice[0];
-        } else if (nftType == 50) {
+        } else if (nftType == 3) {
             mPrice = mintPrice[1];
-        } else if (nftType == 20) {
+        } else if (nftType == 2) {
             mPrice = mintPrice[2];
         } else {
             mPrice = mintPrice[3];
@@ -537,7 +552,7 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         } else {
             mPrice = mintPrice[3];
         }
-        
+
         _tokenIds.increment();
 
         require(_tokenIds.current() <= maxSupply, "Can't mint over maxSupply");
