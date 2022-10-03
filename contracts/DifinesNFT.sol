@@ -98,15 +98,15 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
       ************************
       ****** NFT Types *******
       ************************
-      special character 10
+      special hero 10
       special sword 7
       special shield 7
       special jewel 7
 
-      common character 4
-      common character 3
-      common character 2
-      common character 1
+      common hero 4
+      common sword 3
+      common shield 2
+      common jewel 1
        */
 
         uint256 mPrice = 0;
@@ -144,12 +144,19 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
             tokenUri
         );
 
-        // pay busd to admin
+        // pay busd to admin (call approve busd in the frontend)
         busdToken.transferFrom(msg.sender, devWallet, mPrice * 1e18);
 
         emit MintNFT(newItemId, mPrice * 1e18);
 
         return newItemId;
+    }
+
+    function safeTransfer(address to, uint256 tokenId) public {
+        require(tx.origin == msg.sender, "sender should be same with origin");
+        safeTransferFrom(msg.sender, to, tokenId);
+        // update marketItem
+        idToMarketItem[tokenId].owner = to;
     }
 
     function tokenURI(uint256 tokenId)
@@ -231,20 +238,24 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         return swapItems;
     }
 
-    function fetchMyNFT() public view returns (MarketItem[] memory) {
+    function fetchMyNFT(address from)
+        public
+        view
+        returns (MarketItem[] memory)
+    {
         uint256 itemCount = _tokenIds.current();
         uint256 myNFTCount = 0;
         uint256 currentIndex = 0;
 
         for (uint256 i = 0; i < itemCount; i++) {
-            if (idToMarketItem[i + 1].owner == msg.sender) {
+            if (idToMarketItem[i + 1].owner == from) {
                 myNFTCount += 1;
             }
         }
 
         MarketItem[] memory items = new MarketItem[](myNFTCount);
         for (uint256 i = 0; i < itemCount; i++) {
-            if (idToMarketItem[i + 1].owner == msg.sender) {
+            if (idToMarketItem[i + 1].owner == from) {
                 uint256 currentId = i + 1;
                 MarketItem storage currentItem = idToMarketItem[currentId];
                 items[currentIndex] = currentItem;
@@ -293,6 +304,10 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
 
     function getDevWalletAddress() public view returns (address) {
         return devWallet;
+    }
+
+    function totalSupply() public view returns (uint256) {
+        return _tokenIds.current();
     }
 
     /**
@@ -560,7 +575,6 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         uint256 newItemId = _tokenIds.current();
         _safeMint(msg.sender, newItemId);
         _setTokenURI(newItemId, tokenUri);
-        _approve(address(this), newItemId);
         idToMarketItem[newItemId] = MarketItem(
             newItemId,
             msg.sender,
