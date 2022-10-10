@@ -180,7 +180,9 @@ describe("Difines NFT Marketplace", function () {
     console.log(userNFTList);
     console.log("\n");
 
-    let anotherUserNFTList = await difinesNft.connect(anotherUser).fetchMyNFT(anotherUser.address);
+    let anotherUserNFTList = await difinesNft
+      .connect(anotherUser)
+      .fetchMyNFT(anotherUser.address);
     console.log("----------------------------------");
     console.log("------ AnotherUser NFT Items -----");
     console.log("----------------------------------");
