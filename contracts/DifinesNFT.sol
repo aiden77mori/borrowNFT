@@ -69,7 +69,7 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
 
     event ListItemForSale(uint256 tokenId, uint256 price);
     event RemoveItemFromSale(uint256 tokenId);
-    event ItemSold(uint256 tokenId, address seller, address recipient, uint256 price);
+    event ItemSold(uint256 tokenId, address seller, uint256 price);
 
     event ListItemForSwap(uint256 tokenId, uint256 price);
     event RemoveItemFromSwap(uint256 tokenId);
@@ -367,8 +367,7 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
             busdToken.balanceOf(msg.sender) >= itemsForSale[tokenId].price,
             "User does not have enough money to buy item"
         );
-        uint256 purchasePrice = itemsForSale[tokenId].price;
-        address seller = itemsForSale[tokenId].seller;
+
         // should call erc721 approve function before transferFrom nft
         _approve(msg.sender, tokenId);
         // transfer nft to buyer
@@ -391,6 +390,13 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         );
         // transfer recipAmount of busd to the seller
         busdToken.transfer(itemsForSale[tokenId].seller, recipAmount);
+        
+        emit ItemSold(
+            tokenId,
+            itemsForSale[tokenId].seller,
+            itemsForSale[tokenId].price
+        );
+
         // tranfer royaltyAmount of busd to the nft owners and admin or dev wallet
         transferRoyalty(royaltyAmount);
 
@@ -398,8 +404,6 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         _sellItemIds.decrement();
         delete itemsForSale[tokenId];
         activeItems[tokenId] = false;
-
-        emit ItemSold(tokenId, seller, msg.sender, purchasePrice);
     }
 
     function transferRoyalty(uint256 amount) private {

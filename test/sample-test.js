@@ -281,6 +281,7 @@ describe("Difines NFT Marketplace", function () {
     console.log("-------------------");
     console.log("----- Buy NFT -----");
     console.log("-------------------");
+
     // before buy nft, call erc20 approve function
     await busdToken
       .connect(user)
@@ -289,112 +290,118 @@ describe("Difines NFT Marketplace", function () {
         ethers.utils.parseUnits(Number(250).toString(), 18)
       );
     let txBuy = await difinesNft.connect(user).buyItem(3);
-    await txBuy.wait();
+    let receipt = await txBuy.wait();
     console.log("Buy NFT hash result ", txBuy.hash);
     console.log("\n");
+    console.log("888888888888888888");
+    console.log("ItemSold Event");
+    console.log(receipt.events);
+    console.log("888888888888888888");
+    console.log("888888888888888888");
+    console.log("888888888888888888");
 
-    // fetch sell items
-    console.log("-------------------------------");
-    console.log("----- Fetch Item For Sale -----");
-    console.log("-------------------------------");
-    saleItems = await difinesNft.fetchSellItems();
-    console.log(saleItems);
-    console.log("\n");
+    // // fetch sell items
+    // console.log("-------------------------------");
+    // console.log("----- Fetch Item For Sale -----");
+    // console.log("-------------------------------");
+    // saleItems = await difinesNft.fetchSellItems();
+    // console.log(saleItems);
+    // console.log("\n");
 
-    let userNFTList = await difinesNft.connect(user).fetchMyNFT(user.address);
-    console.log("---------------------------");
-    console.log("------ User NFT Items -----");
-    console.log("---------------------------");
-    console.log(userNFTList);
-    console.log("\n");
+    // let userNFTList = await difinesNft.connect(user).fetchMyNFT(user.address);
+    // console.log("---------------------------");
+    // console.log("------ User NFT Items -----");
+    // console.log("---------------------------");
+    // console.log(userNFTList);
+    // console.log("\n");
 
-    let ownerNFTList = await difinesNft.fetchMyNFT(owner.address);
-    console.log("----------------------------");
-    console.log("------ Owner NFT Items -----");
-    console.log("----------------------------");
-    console.log(ownerNFTList);
-    console.log("\n");
+    // let ownerNFTList = await difinesNft.fetchMyNFT(owner.address);
+    // console.log("----------------------------");
+    // console.log("------ Owner NFT Items -----");
+    // console.log("----------------------------");
+    // console.log(ownerNFTList);
+    // console.log("\n");
 
-    console.log("----------------------------");
-    console.log("------ User`s balance ------");
-    console.log("----------------------------");
-    console.log(
-      ethers.utils.formatEther(await busdToken.balanceOf(user.address))
-    );
-    console.log("\n");
+    // console.log("----------------------------");
+    // console.log("------ User`s balance ------");
+    // console.log("----------------------------");
+    // console.log(
+    //   ethers.utils.formatEther(await busdToken.balanceOf(user.address))
+    // );
+    // console.log("\n");
 
-    console.log("-----------------------------------");
-    console.log("------ AnotherUser`s balance ------");
-    console.log("-----------------------------------");
-    console.log(
-      ethers.utils.formatEther(await busdToken.balanceOf(anotherUser.address))
-    );
-    console.log("\n");
+    // console.log("-----------------------------------");
+    // console.log("------ AnotherUser`s balance ------");
+    // console.log("-----------------------------------");
+    // console.log(
+    //   ethers.utils.formatEther(await busdToken.balanceOf(anotherUser.address))
+    // );
+    // console.log("\n");
 
-    console.log("-----------------------------");
-    console.log("------ Owner`s balance ------");
-    console.log("-----------------------------");
-    console.log(
-      ethers.utils.formatEther(await busdToken.balanceOf(owner.address))
-    );
-    console.log("\n");
+    // console.log("-----------------------------");
+    // console.log("------ Owner`s balance ------");
+    // console.log("-----------------------------");
+    // console.log(
+    //   ethers.utils.formatEther(await busdToken.balanceOf(owner.address))
+    // );
+    // console.log("\n");
 
-    console.log("---------------------------------");
-    console.log("------ Marketplace balance ------");
-    console.log("---------------------------------");
-    console.log(
-      ethers.utils.formatEther(await busdToken.balanceOf(difinesNft.address))
-    );
-    console.log("\n");
+    // console.log("---------------------------------");
+    // console.log("------ Marketplace balance ------");
+    // console.log("---------------------------------");
+    // console.log(
+    //   ethers.utils.formatEther(await busdToken.balanceOf(difinesNft.address))
+    // );
+    // console.log("\n");
 
-    console.log("---------------------------------");
-    console.log("------ DevWallet`s balance ------");
-    console.log("---------------------------------");
-    console.log(ethers.utils.formatEther(await busdToken.balanceOf(devWallet)));
-    console.log("\n");
+    // console.log("---------------------------------");
+    // console.log("------ DevWallet`s balance ------");
+    // console.log("---------------------------------");
+    // console.log(ethers.utils.formatEther(await busdToken.balanceOf(devWallet)));
+    // console.log("\n");
   });
 
-  it("Transfer NFT From Owner", async function () {
-    let tx = await difinesNft.safeTransfer(user.address, 4);
-    await tx.wait();
-    console.log("safe transfer tx hash ", tx.hash);
-    console.log("\n");
+  // it("Transfer NFT From Owner", async function () {
+  //   let tx = await difinesNft.safeTransfer(user.address, 4);
+  //   await tx.wait();
+  //   console.log("safe transfer tx hash ", tx.hash);
+  //   console.log("\n");
 
-    let list = await difinesNft.fetchMarketItems();
-    console.log("-----------------------------");
-    console.log("------ NFT Market Items -----");
-    console.log("-----------------------------");
-    console.log(list);
-    console.log("\n");
+  //   let list = await difinesNft.fetchMarketItems();
+  //   console.log("-----------------------------");
+  //   console.log("------ NFT Market Items -----");
+  //   console.log("-----------------------------");
+  //   console.log(list);
+  //   console.log("\n");
 
-    let ownerNFTList = await difinesNft.fetchMyNFT(owner.address);
-    console.log("---------------------------");
-    console.log("------ Owner NFT Items -----");
-    console.log("---------------------------");
-    console.log(ownerNFTList);
-    console.log("\n");
+  //   let ownerNFTList = await difinesNft.fetchMyNFT(owner.address);
+  //   console.log("---------------------------");
+  //   console.log("------ Owner NFT Items -----");
+  //   console.log("---------------------------");
+  //   console.log(ownerNFTList);
+  //   console.log("\n");
 
-    let userNFTList = await difinesNft.connect(user).fetchMyNFT(user.address);
-    console.log("---------------------------");
-    console.log("------ User NFT Items -----");
-    console.log("---------------------------");
-    console.log(userNFTList);
-    console.log("\n");
+  //   let userNFTList = await difinesNft.connect(user).fetchMyNFT(user.address);
+  //   console.log("---------------------------");
+  //   console.log("------ User NFT Items -----");
+  //   console.log("---------------------------");
+  //   console.log(userNFTList);
+  //   console.log("\n");
 
-    console.log("----------------------------");
-    console.log("------ User`s balance ------");
-    console.log("----------------------------");
-    console.log(
-      ethers.utils.formatEther(await busdToken.balanceOf(user.address))
-    );
-    console.log("\n");
+  //   console.log("----------------------------");
+  //   console.log("------ User`s balance ------");
+  //   console.log("----------------------------");
+  //   console.log(
+  //     ethers.utils.formatEther(await busdToken.balanceOf(user.address))
+  //   );
+  //   console.log("\n");
 
-    console.log("-----------------------------");
-    console.log("------ Owner`s balance ------");
-    console.log("-----------------------------");
-    console.log(
-      ethers.utils.formatEther(await busdToken.balanceOf(owner.address))
-    );
-    console.log("\n");
-  });
+  //   console.log("-----------------------------");
+  //   console.log("------ Owner`s balance ------");
+  //   console.log("-----------------------------");
+  //   console.log(
+  //     ethers.utils.formatEther(await busdToken.balanceOf(owner.address))
+  //   );
+  //   console.log("\n");
+  // });
 });
