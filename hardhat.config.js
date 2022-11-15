@@ -8,12 +8,9 @@ const projectId = "4c8bccb32aeb926dff5547fd";
 // const projectId = "lo8dR3THgQ7Xp74KMIAI8VJBfLT5qhCBNMWHo6ep";
 const apiKeyForEtherscan = "4KWQHG7RB749V28PG4457J6PQARXV3A4T3";
 
-const privateKey =
-  "07298b31cdc8efc34d6b1182ed4778ad347fed0d58fe058e48245376b2d2edc8";
-const privateKey1 =
-  "cdd5687858732474d8fc11198fbe1f77565dfd1c4a3f50eeb7f3059e6218cd48";
-const privateKey2 =
-  "71692407dd729384f1a80b04ebad3dcc0bf05274dbfa23cd437684d4acc0ec76";
+const privateKey = process.env.PRIVATEKEY;
+const privateKey1 = process.env.PRIVATEKEY1;
+const privateKey2 = process.env.PRIVATEKEY2;
 
 const optimizerEnabled = true;
 
