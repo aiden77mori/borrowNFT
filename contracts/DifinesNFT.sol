@@ -92,6 +92,7 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
 
     function mintNFT(string memory tokenUri, uint256 nftType)
         public
+        nonReentrant
         returns (uint256)
     {
         /**
@@ -390,7 +391,7 @@ contract DifinesNFT is ERC721, ERC721URIStorage, ReentrancyGuard, Ownable {
         );
         // transfer recipAmount of busd to the seller
         busdToken.transfer(itemsForSale[tokenId].seller, recipAmount);
-        
+
         emit ItemSold(
             tokenId,
             itemsForSale[tokenId].seller,
