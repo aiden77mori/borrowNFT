@@ -6,7 +6,9 @@ let testToken;
 let owner;
 let user;
 let anotherUser;
-let devWallet = "0x7a315ec417bddf49c122770b26a1453e25b2576b";
+const firstNFTTokenAmount = 100;
+const secondNFTTokenAmount = 500;
+const thirdNFTTOkenAmount = 1000;
 
 describe("BorrowNFT Marketplace", function () {
   it("Deploy BorrowNFT and TestToken Contract", async function () {
@@ -55,9 +57,7 @@ describe("BorrowNFT Marketplace", function () {
 
     // user's nft mint
     // before mint, should call erc20 approve function
-    const firstNFTTokenAmount = 100;
-    const secondNFTTokenAmount = 500;
-    const thirdNFTTOkenAmount = 1000;
+
     await testToken
       .connect(user)
       .approve(
@@ -72,6 +72,10 @@ describe("BorrowNFT Marketplace", function () {
       );
     await txUser.wait();
     console.log("User mint hash result = ", txUser.hash);
+    console.log(
+      "pool balance after mint: ",
+      ethers.utils.formatEther(await testToken.balanceOf(borrowNFT.address))
+    );
 
     // anotherUser's nft mint
     // before mint, should call erc20 approve function
@@ -89,36 +93,67 @@ describe("BorrowNFT Marketplace", function () {
       );
     await txAnotherUser.wait();
     console.log("AnotherUser mint hash result = ", txAnotherUser.hash);
+    console.log(
+      "pool balance after mint: ",
+      ethers.utils.formatEther(await testToken.balanceOf(borrowNFT.address))
+    );
+  });
+
+  it("Should Borrow NFT", async () => {
+    console.log(
+      "owner balance before borow: ",
+      ethers.utils.formatEther(await testToken.balanceOf(owner.address))
+    );
+    let borrowTx = await borrowNFT.borrowNFT(0);
+    borrowTx.wait();
+    console.log("borrow transaction: ", borrowTx.hash);
+    console.log(
+      "owner balance before borow: ",
+      ethers.utils.formatEther(await testToken.balanceOf(owner.address))
+    );
+  });
+
+  it("Should repay NFT", async () => {
+    console.log(
+      "pool balance before repay: ",
+      ethers.utils.formatEther(await testToken.balanceOf(borrowNFT.address))
+    );
+    let approveTx = await testToken.approve(
+      borrowNFT.address,
+      ethers.utils.parseUnits(Number(firstNFTTokenAmount).toString(), 18)
+    );
+    await approveTx.wait();
+    console.log("approve hash: ", approveTx.hash);
+
+    let repayTx = await borrowNFT.rePayNFT(0);
+    await repayTx.wait();
+    console.log("repay transaction hash: ", repayTx.hash);
+    console.log(
+      "pool balance after repay: ",
+      ethers.utils.formatEther(await testToken.balanceOf(borrowNFT.address))
+    );
   });
 
   it("Should fetch NFT", async function () {
     let list = await borrowNFT.fetchMarketItems();
-    console.log("-----------------------------");
     console.log("------ NFT Market Items -----");
-    console.log("-----------------------------");
     console.log(list);
     console.log("\n");
 
     let userNFTList = await borrowNFT.connect(user).fetchMyNFT(user.address);
-    console.log("---------------------------");
     console.log("------ User NFT Items -----");
-    console.log("---------------------------");
     console.log(userNFTList);
     console.log("\n");
 
     let anotherUserNFTList = await borrowNFT
       .connect(anotherUser)
       .fetchMyNFT(anotherUser.address);
-    console.log("----------------------------------");
     console.log("------ AnotherUser NFT Items -----");
-    console.log("----------------------------------");
     console.log(anotherUserNFTList);
     console.log("\n");
 
     let ownerNFTList = await borrowNFT.fetchMyNFT(owner.address);
-    console.log("----------------------------");
     console.log("------ Owner NFT Items -----");
-    console.log("----------------------------");
     console.log(ownerNFTList);
     console.log("\n");
   });
@@ -128,18 +163,17 @@ describe("BorrowNFT Marketplace", function () {
     console.log("tokenURI of 0(tokenID) = ", tokenUri1);
     let tokenUri2 = await borrowNFT.tokenURI(1);
     console.log("tokenURI of 1(tokenID) = ", tokenUri2);
-    let tokenUri3 = await borrowNFT.tokenURI(2);
-    console.log("tokenURI of 2(tokenID) = ", tokenUri3);
+    // let tokenUri3 = await borrowNFT.tokenURI(2);
+    // console.log("tokenURI of 2(tokenID) = ", tokenUri3);
     console.log("\n");
   });
 
   it("Display NFT Marketplace Info", async function () {
     let maxSupply = await borrowNFT.maxSupply();
-    console.log("Max Supply = ", maxSupply);
+    console.log("\nMax Supply = ", maxSupply);
     let owner = await borrowNFT.owner();
     console.log("Owner = ", owner);
     let operator = await borrowNFT.getOwner();
     expect(operator).to.equal(operator);
-    console.log("\n");
   });
 });

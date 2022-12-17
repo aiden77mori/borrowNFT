@@ -9,10 +9,10 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-
+import "./interface/IBorrowNFT.sol";
 import "hardhat/console.sol";
 
-contract DifinesNFT is ERC721URIStorage, ReentrancyGuard, Ownable {
+contract BorrowNFT is ERC721URIStorage, ReentrancyGuard, Ownable, IBorrowNFT {
     using Counters for Counters.Counter;
     using SafeMath for uint256;
 
@@ -57,7 +57,7 @@ contract DifinesNFT is ERC721URIStorage, ReentrancyGuard, Ownable {
         uint256 newItemId = _tokenIds.current();
         _mint(msg.sender, newItemId);
         _setTokenURI(newItemId, tokenUri);
-
+        console.log("newItemId: ", newItemId);
         MarketItem storage mItem = idToMarketItem[newItemId];
         mItem.tokenId = newItemId;
         mItem.creator = msg.sender;
@@ -85,7 +85,6 @@ contract DifinesNFT is ERC721URIStorage, ReentrancyGuard, Ownable {
                 idToMarketItem[nftId].tokenAmount,
             "pool don't have enough token balance to lending"
         );
-
         MarketItem storage nftItem = idToMarketItem[nftId];
         nftItem.borrower = msg.sender;
         nftItem.borrowed = true;
@@ -139,7 +138,7 @@ contract DifinesNFT is ERC721URIStorage, ReentrancyGuard, Ownable {
         uint256 currentIndex = 0;
 
         MarketItem[] memory items = new MarketItem[](itemCount);
-        for (uint256 i = 0; i < itemCount; i++) {
+        for (uint256 i = 0; i <= itemCount; i++) {
             MarketItem storage currentItem = idToMarketItem[i];
             if (currentItem.creator != address(0x0)) {
                 items[currentIndex] = currentItem;
@@ -159,17 +158,16 @@ contract DifinesNFT is ERC721URIStorage, ReentrancyGuard, Ownable {
         uint256 myNFTCount = 0;
         uint256 currentIndex = 0;
 
-        for (uint256 i = 0; i < itemCount; i++) {
+        for (uint256 i = 0; i <= itemCount; i++) {
             if (idToMarketItem[i].borrower == from) {
                 myNFTCount += 1;
             }
         }
 
         MarketItem[] memory items = new MarketItem[](myNFTCount);
-        for (uint256 i = 0; i < itemCount; i++) {
+        for (uint256 i = 0; i <= itemCount; i++) {
             if (idToMarketItem[i].borrower == from) {
-                uint256 currentId = i + 1;
-                MarketItem storage currentItem = idToMarketItem[currentId];
+                MarketItem storage currentItem = idToMarketItem[i];
                 items[currentIndex] = currentItem;
                 currentIndex += 1;
             }
