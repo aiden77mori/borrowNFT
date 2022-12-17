@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-import "./interfaces/IBEP20.sol";
-import "./libs/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "./interface/IERC20.sol";
 
-contract DifinesToken is IBEP20 {
+contract TestToken is IERC20 {
     using SafeMath for uint256;
     string _name;
     string _symbol;
-    uint8 _decimals;
+    uint256 _decimals;
     uint256 _totalSupply;
 
     address _operator;
@@ -25,16 +25,11 @@ contract DifinesToken is IBEP20 {
     mapping(address => uint256) balances;
     mapping(address => mapping(address => uint256)) allowed;
 
-    constructor(
-        uint256 initialSupply,
-        string memory tokenName,
-        uint8 tokenDecimal,
-        string memory tokenSymbol
-    ) {
-        _name = tokenName;
-        _symbol = tokenSymbol;
-        _decimals = tokenDecimal;
-        _totalSupply = initialSupply * (10**tokenDecimal);
+    constructor() {
+        _name = "TestToken";
+        _symbol = "TT";
+        _decimals = 1e18;
+        _totalSupply = 10_000 * _decimals;
         balances[msg.sender] = _totalSupply;
         _operator = msg.sender;
         emit OwnershipTransferred(address(0), _operator);
@@ -94,7 +89,7 @@ contract DifinesToken is IBEP20 {
         return _symbol;
     }
 
-    function decimals() public view override returns (uint8) {
+    function decimals() public view override returns (uint256) {
         return _decimals;
     }
 

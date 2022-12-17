@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.4;
 
-interface IBEP20 {
+interface IERC20 {
     /**
      * @dev Returns the amount of tokens in existence.
      */
@@ -11,7 +11,7 @@ interface IBEP20 {
     /**
      * @dev Returns the token decimals.
      */
-    function decimals() external view returns (uint8);
+    function decimals() external view returns (uint256);
 
     /**
      * @dev Returns the token symbol.
