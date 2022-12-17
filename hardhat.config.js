@@ -1,7 +1,7 @@
 require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
-// require("@openzeppelin/hardhat-upgrades");
+require("dotenv").config();
 
 const projectId = "4c8bccb32aeb926dff5547fd";
 //Kingdom application ID
