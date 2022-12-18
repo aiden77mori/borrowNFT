@@ -18,7 +18,7 @@ const Loader = (Component) => (props) =>
 
 const MintPage = Loader(lazy(() => import('src/content/MintPage')));
 const BorrowPage = Loader(lazy(() => import('src/content/BorrowPage')));
-// const RepayPage = Loader(lazy(() => import('src/content/RepayPage')));
+const RepayPage = Loader(lazy(() => import('src/content/RepayPage')));
 
 // Status
 
@@ -80,11 +80,11 @@ const routes: RouteObject[] = [
       {
         path: 'borrow',
         element: <BorrowPage />
+      },
+      {
+        path: 'repay',
+        element: <RepayPage />
       }
-      // {
-      //   path: 'repay',
-      //   element: <RepayPage />
-      // }
     ]
   }
 ];

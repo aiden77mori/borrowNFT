@@ -7,19 +7,19 @@ import { Container, Grid, Typography } from '@mui/material';
 // import PageHeader from './PageHeader';
 import PageTitleWrapper from 'src/components/PageTitleWrapper';
 import Footer from 'src/components/Footer';
-import BorrowBox from './BorrowBox';
+import RepayBox from './RepayBox';
 
 // style
-import './BorrowPage.scss';
+import './RepayPage.scss';
 
-function BorrowPage() {
+function RepayPage() {
   return (
     <>
       <Helmet>
         <title>Borrow NFT</title>
       </Helmet>
       <PageTitleWrapper>
-        <Typography variant="h2">Borrow Page</Typography>
+        <Typography variant="h2">Repay Page</Typography>
         {/* <PageHeader /> */}
       </PageTitleWrapper>
       <Container maxWidth="lg">
@@ -31,7 +31,7 @@ function BorrowPage() {
           spacing={4}
         >
           <Grid item xs={12}>
-            <BorrowBox />
+            <RepayBox />
           </Grid>
         </Grid>
       </Container>
@@ -40,4 +40,4 @@ function BorrowPage() {
   );
 }
 
-export default BorrowPage;
+export default RepayPage;

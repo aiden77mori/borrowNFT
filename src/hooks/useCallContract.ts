@@ -17,22 +17,19 @@ const useCallContract = () => {
 
   /**
    * @function mintNFT
-   * @param nftType
    * @param tokenUri
-   * @param nftId
-   * @param imgUrl
+   * @param tokenAmount
    */
   const mintNFT = async (tokenUri: string, tokenAmount: number) => {
     try {
       const borrowAmount = utils.parseUnits(tokenAmount.toString(), 18);
       const borrowNFT = await getContractByWeb3('BorrowNFT', chainId);
       const testToken = await getContract('TestToken', chainId);
-      console.log(borrowNFT.options.address);
       let tx = await testToken.approve(borrowNFT.options.address, borrowAmount);
       await tx.wait();
 
       await borrowNFT.methods
-        .mintNFT('asdf', utils.parseUnits(tokenAmount.toString(), 18))
+        .mintNFT(tokenUri, utils.parseUnits(tokenAmount.toString(), 18))
         .send({ from: account })
         .on('confirmation', function (confirmationNumber, receipt) {})
         .on('receipt', async function (receipt: any) {
@@ -54,13 +51,77 @@ const useCallContract = () => {
 
       toast.success('You mint NFT successfully.');
     } catch (err) {
-      console.error('While minting NFT error is happend: ', err);
+      console.error('While minting NFT error is occured: ', err);
+      toast.error(err.message);
+    }
+  };
+
+  /**
+   * @function borrowNFT
+   * @param nftId
+   */
+  const borrowNFT = async (nftId: string) => {
+    try {
+      const borrowNFTContract = await getContractByWeb3('BorrowNFT', chainId);
+      await borrowNFTContract.methods
+        .borrowNFT(nftId)
+        .send({ from: account })
+        .on('confirmation', function (confirmationNumber, receipt) {})
+        .on('receipt', async function (receipt: any) {
+          console.log(receipt);
+        });
+
+      toast.success('You borrowed successfully.');
+    } catch (err) {
+      console.error('White borrowing NFT error is occured: ', err);
+      toast.error(err.message);
+    }
+  };
+
+  /**
+   * @function fetchMarketItem
+   */
+  const fetchMarketItem = async () => {
+    const borrowNFT = await getContractByWeb3('BorrowNFT', chainId);
+    const mintedNFT = await borrowNFT.methods.fetchMarketItems().call();
+
+    return mintedNFT;
+  };
+
+  /**
+   * @function repayNFT
+   * @param nftId
+   */
+  const repayNFT = async (nftId: string, tokenAmount: string) => {
+    try {
+      const repayAmount = utils.parseUnits(Number(tokenAmount).toString(), 18);
+      const borrowNFTContract = await getContractByWeb3('BorrowNFT', chainId);
+      const testToken = await getContract('TestToken', chainId);
+      let tx = await testToken.approve(
+        borrowNFTContract.options.address,
+        repayAmount
+      );
+      await tx.wait();
+      await borrowNFTContract.methods
+        .rePayNFT(nftId)
+        .send({ from: account })
+        .on('confirmation', function (confirmationNumber, receipt) {})
+        .on('receipt', async function (receipt: any) {
+          console.log(receipt);
+        });
+
+      toast.success('You repaid successfully.');
+    } catch (err) {
+      console.error('White repaying NFT error is occured: ', err);
       toast.error(err.message);
     }
   };
 
   return {
     mintNFT,
+    fetchMarketItem,
+    borrowNFT,
+    repayNFT
   };
 };
 

@@ -92,9 +92,9 @@ function CreateBox() {
 
       // mint NFT with metadata
       await mintNFT(resMetaData.data.IpfsHash, nftInfo.amount);
+      setIsLoading(false);
     } catch (err) {
       console.error(err);
-    } finally {
       setIsLoading(false);
     }
 
