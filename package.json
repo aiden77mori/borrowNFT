@@ -1,11 +1,10 @@
 {
-  "name": "difines-nft-marketplace",
+  "name": "borrow-nft-marketplace",
   "version": "2.0.0",
-  "title": "Difines NFT Marketplace",
-  "description": "This is NFT marketplace managed by Difines business.",
+  "title": "Borrow and Repay NFT",
+  "description": "This is NFT marketplace for borrowing and repaying.",
   "author": {
-    "name": "Sato",
-    "url": "https://nftmaket.difines.io"
+    "name": "Moon"
   },
   "private": false,
   "dependencies": {

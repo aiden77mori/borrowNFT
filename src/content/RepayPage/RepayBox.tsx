@@ -49,7 +49,6 @@ function RepayBox() {
 
   useEffect(() => {
     async function init() {
-      if (!account) return;
       setIsLoading(true);
       let result = await fetchMarketItem();
       const filteredRes = result.filter((res: any) => res.borrowed);
