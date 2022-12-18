@@ -1,0 +1,79 @@
+$header-height: 70px;
+
+.carousel-root {
+  .carousel-slider {
+    max-height: 560px;
+    .slide-one-group {
+      position: relative;
+      .slide-backImage {
+        max-height: 560px;
+      }
+      .hero-vector {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        z-index: 100;
+        width: 20%;
+      }
+      .slide-content {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        .slide-container {
+          width: 100%;
+          height: 100%;
+          position: relative;
+          .left {
+            display: grid;
+            align-content: center;
+            row-gap: 50px;
+            @media (max-width: 640px) {
+              row-gap: 15px;
+              padding-left: 5px;
+            }
+            height: 100%;
+            width: 50%;
+            text-align: left;
+            padding-right: inherit;
+            h1 {
+              background: -webkit-linear-gradient(
+                180deg,
+                #f1a4fa 0%,
+                #80eff5 100%
+              );
+              background-clip: text;
+              -webkit-text-fill-color: transparent;
+              @media (max-width: 640px) {
+                font-size: 16px;
+              }
+            }
+            div {
+              color: #fff;
+              @media (max-width: 640px) {
+                display: none;
+              }
+            }
+            button {
+              width: 50%;
+              @media (max-width: 640px) {
+                width: 100%;
+                font-size: 8px;
+              }
+            }
+          }
+          .hero-image {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translatey(-50%);
+            max-height: 450px;
+            width: 50%;
+            padding-right: inherit;
+          }
+        }
+      }
+    }
+  }
+}

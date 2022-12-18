@@ -1,0 +1,75 @@
+.nft-card {
+  border-radius: 0;
+  position: relative;
+  border-top-left-radius: 25px;
+  border-bottom-right-radius: 25px;
+  transition: box-shadow 0.5s;
+  .nft-back-box {
+    padding: 10px;
+    position: relative;
+    .nft-back {
+      min-height: 100px;
+      border: 1px solid #3e4859;
+      border-top-left-radius: 25px;
+    }
+    .nft-owner-img {
+      cursor: pointer;
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 50px;
+      height: 50px;
+      background: #1f243a;
+      border-radius: 50%;
+      img {
+        width: auto;
+      }
+    }
+    .nft-owner-img:hover {
+      transition: all 0.5s ease;
+      padding: 4px;
+    }
+  }
+  // .like-group {
+  //   position: absolute;
+  //   cursor: pointer;
+  //   top: 15px;
+  //   right: 15px;
+  //   .nav-like-group {
+  //     position: relative;
+  //     display: flex;
+  //     flex-direction: column;
+  //     align-items: center;
+  //     .like-btn {
+  //       width: 20px;
+  //       height: 20px;
+  //     }
+  //     .like-num {
+  //       font-size: 14px;
+  //     }
+  //   }
+  // }
+
+  .card-content {
+    padding: 10px;
+    .card-line {
+      width: 100%;
+      padding: 3px 0;
+      .title {
+        font-size: 12px;
+      }
+      .nft-title,
+      .nft-price {
+        font-weight: bold;
+      }
+      button {
+        width: 100%;
+        border-radius: 0;
+        border-bottom-right-radius: 15px;
+      }
+    }
+  }
+}
+.nft-card:hover {
+  box-shadow: 0 0 21px rgba(33, 33, 33, 0.5);
+}

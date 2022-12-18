@@ -1,0 +1,79 @@
+.nftList-section {
+  // .category-info {
+  //   display: flex;
+  //   align-items: center;
+  //   gap: 10px;
+  //   padding-bottom: 10px;
+  // }
+  .category-list-card {
+    border-radius: 0;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.1);
+    margin-bottom: 10px;
+    .category-list {
+      .cButton {
+        min-width: 100px;
+        width: 100%;
+        border-radius: 0;
+      }
+    }
+  }
+  .nft-card-list-box {
+    padding: 10px;
+    border-radius: 0;
+    background: rgba(0, 0, 0, 0.1);
+    .filter-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: normal;
+        gap: 10px;
+      }
+      .item-found-box {
+        font-size: 18px;
+        font-weight: 600;
+      }
+      .filter-control-group {
+        display: grid;
+        align-items: center;
+        gap: 20px;
+        @media (min-width: 768px) {
+          grid-template-columns: repeat(3, auto);
+        }
+        @media (max-width: 768px) {
+          justify-content: space-between;
+        }
+        @media (max-width: 425px) {
+          grid-template-rows: repeat(3, auto);
+          justify-content: normal;
+          gap: 10px;
+        }
+        .sort-by-form,
+        .item-perPage-form {
+          .select-box {
+            border-radius: 0;
+          }
+        }
+        .change-view {
+          display: none;
+          @media (min-width: 768px) {
+            display: block;
+          }
+        }
+      }
+    }
+  }
+  .pagenation-box {
+    padding-top: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    @media (max-width: 425px) {
+      flex-direction: column;
+    }
+  }
+}
