@@ -13,18 +13,17 @@ async function main() {
   // manually to make sure everything is compiled
   // await hre.run('compile');
 
-  const DifinesToken = await hre.ethers.getContractFactory("DifinesToken");
-  const difinesToken = await DifinesToken.deploy(50000, "cBUSD", 18, "cBUSD");
-  await difinesToken.deployed();
-  console.log("cBUSD address: ", difinesToken.address);
-
   // We get the contract to deploy
-  const DifinesNFT = await hre.ethers.getContractFactory("DifinesNFT");
-  const difinesNft = await DifinesNFT.deploy(difinesToken.address, "0x9487C04A3fBf1EaF708b5cf19134ff53d246608c");
+  const TestToken = await hre.ethers.getContractFactory("TestToken");
+  const testToken = await TestToken.deploy();
+  await testToken.deployed();
 
-  await difinesNft.deployed();
+  const BorrowNFT = await hre.ethers.getContractFactory("BorrowNFT");
+  const borrowNFT = await BorrowNFT.deploy(testToken.address);
+  await borrowNFT.deployed();
+  console.log("borrowNFT address: ", borrowNFT.address);
 
-  console.log("DifinesNFT deployed to:", difinesNft.address);
+  console.log("test token address:", difinesNft.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

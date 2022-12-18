@@ -52,6 +52,10 @@ contract BorrowNFT is ERC721URIStorage, ReentrancyGuard, Ownable, IBorrowNFT {
     {
         require(_tokenIds.current() <= maxSupply, "Can't mint over maxSupply");
         require(amount > 0, "amount should > 0");
+        require(
+            testToken.balanceOf(msg.sender) >= amount,
+            "User don't have enough token to mint"
+        );
         require(!nftExists[tokenUri], "same tokenUri(nft) can't mint again");
 
         uint256 newItemId = _tokenIds.current();
