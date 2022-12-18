@@ -17,13 +17,13 @@ async function main() {
   const TestToken = await hre.ethers.getContractFactory("TestToken");
   const testToken = await TestToken.deploy();
   await testToken.deployed();
+  console.log("test token address:", testToken.address);
 
   const BorrowNFT = await hre.ethers.getContractFactory("BorrowNFT");
   const borrowNFT = await BorrowNFT.deploy(testToken.address);
   await borrowNFT.deployed();
   console.log("borrowNFT address: ", borrowNFT.address);
 
-  console.log("test token address:", difinesNft.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

@@ -28,8 +28,8 @@ contract TestToken is IERC20 {
     constructor() {
         _name = "TestToken";
         _symbol = "TT";
-        _decimals = 1e18;
-        _totalSupply = 10_000 * _decimals;
+        _decimals = 18;
+        _totalSupply = 10_000 * 1e18;
         balances[msg.sender] = _totalSupply;
         _operator = msg.sender;
         emit OwnershipTransferred(address(0), _operator);

@@ -117,7 +117,7 @@ module.exports = {
       accounts: [privateKey, privateKey1, privateKey2],
     },
     bscmainnet: {
-      url: `https://data-seed-prebsc-1-s1.binance.org:8545`,
+      url: `https://bsc-dataseed2.ninicoin.io`,
       accounts: [privateKey, privateKey1, privateKey2],
     },
     fantom: {

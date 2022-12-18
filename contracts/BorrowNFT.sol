@@ -61,7 +61,7 @@ contract BorrowNFT is ERC721URIStorage, ReentrancyGuard, Ownable, IBorrowNFT {
         uint256 newItemId = _tokenIds.current();
         _mint(msg.sender, newItemId);
         _setTokenURI(newItemId, tokenUri);
-        console.log("newItemId: ", newItemId);
+
         MarketItem storage mItem = idToMarketItem[newItemId];
         mItem.tokenId = newItemId;
         mItem.creator = msg.sender;
@@ -89,6 +89,7 @@ contract BorrowNFT is ERC721URIStorage, ReentrancyGuard, Ownable, IBorrowNFT {
                 idToMarketItem[nftId].tokenAmount,
             "pool don't have enough token balance to lending"
         );
+				
         MarketItem storage nftItem = idToMarketItem[nftId];
         nftItem.borrower = msg.sender;
         nftItem.borrowed = true;
