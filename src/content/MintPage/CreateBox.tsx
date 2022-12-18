@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { create, CID, IPFSHTTPClient } from 'ipfs-http-client';
 
 // @mui
 import { Grid, Box, TextField, Button, Card, Typography } from '@mui/material';
@@ -19,6 +20,10 @@ interface NftInfoProps {
   amount: number;
 }
 
+const projectId = '2Im3cjS4lglgGdcfHjbLmQeWOTC';
+const projectSecret = '2939c7c12376154b5f9b1466036c070b';
+const authorization = 'Basic ' + btoa(projectId + ':' + projectSecret);
+
 function CreateBox() {
   const { mintNFT } = useCallContract();
   const { account } = useWeb3React();
@@ -33,6 +38,19 @@ function CreateBox() {
     amount: 0
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  let ipfs: IPFSHTTPClient | undefined;
+  try {
+    ipfs = create({
+      url: 'https://ipfs.infura.io:5001/api/v0',
+      headers: {
+        authorization
+      }
+    });
+  } catch (err) {
+    console.error('IPFS error ', err);
+    ipfs = undefined;
+  }
 
   const goToEdit = () => {
     if (isLoading) return;
@@ -75,30 +93,30 @@ function CreateBox() {
       return;
     }
     try {
-      // upload image to pinata
-      const formImageData = new FormData();
-      formImageData.append('file', imgUrl.real);
-      const resImage = await useSendFileToIPFS(formImageData);
-      console.log(resImage.data.IpfsHash);
-      // upload json metadata to pinata with img url
+      const imageRes = await (ipfs as IPFSHTTPClient).add(imgUrl.real, {
+        progress: (prog) => console.log('image received: ', prog)
+      });
+      console.log(imageRes);
+      const imagePath = imageRes.path;
+
       const metaData = JSON.stringify({
         title: nftInfo.title,
         description: nftInfo.description,
-        image: resImage.data.IpfsHash,
-        amount: nftInfo.amount
+        amount: nftInfo.amount,
+        image: imagePath
       });
-      const resMetaData = await useSendJsonIPFS(metaData);
-      console.log(resMetaData.data.IpfsHash);
+      const metaDataRes = await (ipfs as IPFSHTTPClient).add(metaData, {
+        progress: (prog) => console.log('metadata received: ', prog)
+      });
+      console.log(metaDataRes);
 
       // mint NFT with metadata
-      await mintNFT(resMetaData.data.IpfsHash, nftInfo.amount);
+      await mintNFT(metaDataRes.path, nftInfo.amount);
       setIsLoading(false);
     } catch (err) {
       console.error(err);
       setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
   const cancelCreate = () => {
     if (isLoading) return;

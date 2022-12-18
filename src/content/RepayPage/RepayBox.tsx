@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { create, CID, IPFSHTTPClient } from 'ipfs-http-client';
 
 // hooks
 import { useWeb3React } from '@web3-react/core';
@@ -54,7 +55,9 @@ function RepayBox() {
       const filteredRes = result.filter((res: any) => res.borrowed);
       let temp = [];
       for (let i = 0; i < filteredRes.length; i++) {
-        let resFromUrl = await axios.get(filteredRes[i].tokenUri);
+        let resFromUrl = await axios.get(
+          process.env.REACT_APP_IPFS_BASEURL + filteredRes[i].tokenUri
+        );
         let object = {
           tokenId: filteredRes[i].tokenId,
           title: resFromUrl.data.title,
@@ -64,7 +67,6 @@ function RepayBox() {
         };
         temp.push(object);
       }
-      console.log(temp);
       setNftList(temp);
       setIsLoading(false);
     }
@@ -86,7 +88,7 @@ function RepayBox() {
                 component="img"
                 alt="green iguana"
                 height="140"
-                image={process.env.REACT_APP_PINATA_BASEURL + nftItem.image}
+                image={process.env.REACT_APP_IPFS_BASEURL + nftItem.image}
               />
               <CardContent>
                 <Typography gutterBottom variant="h5" component="div">

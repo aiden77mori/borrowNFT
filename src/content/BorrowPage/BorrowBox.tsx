@@ -51,20 +51,20 @@ function BorrowBox() {
 
   useEffect(() => {
     async function init() {
-      if (!account) return;
       setIsLoading(true);
       let result = await fetchMarketItem();
       const filteredRes = result.filter((res: any) => !res.borrowed);
       let temp = [];
       for (let i = 1; i < filteredRes.length; i++) {
-        let resFromUrl = await (await fetch(filteredRes[i].tokenUri)).json();
-        console.log(resFromUrl);
+        let resFromUrl = await axios.get(
+          process.env.REACT_APP_IPFS_BASEURL + filteredRes[i].tokenUri
+        );
         let object = {
           tokenId: filteredRes[i].tokenId,
-          title: resFromUrl.title,
-          description: resFromUrl.description,
+          title: resFromUrl.data.title,
+          description: resFromUrl.data.description,
           amount: utils.formatEther(filteredRes[i].tokenAmount),
-          image: resFromUrl.image
+          image: resFromUrl.data.image
         };
         temp.push(object);
       }
@@ -72,7 +72,7 @@ function BorrowBox() {
       setIsLoading(false);
     }
 
-    init();
+    if (account) init();
 
     return setNftList([]);
   }, [account, chainId, borrowed]);
@@ -89,7 +89,7 @@ function BorrowBox() {
                 component="img"
                 alt="green iguana"
                 height="140"
-                image={process.env.REACT_APP_PINATA_BASEURL + nftItem.image}
+                image={process.env.REACT_APP_IPFS_BASEURL + nftItem.image}
               />
               <CardContent>
                 <Typography gutterBottom variant="h5" component="div">
