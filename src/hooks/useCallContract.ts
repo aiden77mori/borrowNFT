@@ -25,6 +25,11 @@ const useCallContract = () => {
       const borrowAmount = utils.parseUnits(tokenAmount.toString(), 18);
       const borrowNFT = await getContractByWeb3('BorrowNFT', chainId);
       const testToken = await getContract('TestToken', chainId);
+      const walletBalance = await testToken.balanceOf(account);
+      if (Number(utils.formatEther(walletBalance)) < tokenAmount) {
+        toast.error("You don't have enough balance.");
+        return;
+      }
       let tx = await testToken.approve(borrowNFT.options.address, borrowAmount);
       await tx.wait();
 
