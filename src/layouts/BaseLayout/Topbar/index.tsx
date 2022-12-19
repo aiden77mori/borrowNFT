@@ -24,7 +24,6 @@ import useDimension from 'src/hooks/useDimension';
 
 // components
 import TopMenu from './TopMenu';
-import HeaderButtons from '../Buttons';
 import HeaderUserbox from '../Userbox';
 import MobileMenu from './MobileMenu';
 
@@ -118,7 +117,6 @@ function Topbar(props: Props) {
           <TopMenu />
         </Stack>
         <Box display="flex" alignItems="center">
-          <HeaderButtons />
           <HeaderUserbox />
           <Box
             component="span"

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { create, CID, IPFSHTTPClient } from 'ipfs-http-client';
+import { create, IPFSHTTPClient } from 'ipfs-http-client';
 
 // @mui
 import { Grid, Box, TextField, Button, Card, Typography } from '@mui/material';
@@ -7,8 +7,6 @@ import { Grid, Box, TextField, Button, Card, Typography } from '@mui/material';
 // hooks
 import { useWeb3React } from '@web3-react/core';
 import useCallContract from 'src/hooks/useCallContract';
-import useSendFileToIPFS from 'src/hooks/useSendFileToIPFS';
-import { useSendJsonIPFS } from 'src/hooks/useSendFileToIPFS';
 
 interface ImageUrlProps {
   real: string;
@@ -51,11 +49,6 @@ function CreateBox() {
     console.error('IPFS error ', err);
     ipfs = undefined;
   }
-
-  const goToEdit = () => {
-    if (isLoading) return;
-    open('https://nft.difines.io/art');
-  };
 
   const triggerPreviewImage = () => {
     fileRef.current?.click();
@@ -224,15 +217,6 @@ function CreateBox() {
             onClick={handleMint}
           >
             {isLoading ? 'loading...' : 'Mint'}
-          </Button>
-          <Button
-            className="mint-btn btn"
-            variant="outlined"
-            color="success"
-            size="small"
-            onClick={goToEdit}
-          >
-            {isLoading ? 'loading...' : 'Edit Image'}
           </Button>
           <Button
             className="cancel-btn btn"
